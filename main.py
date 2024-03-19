@@ -148,6 +148,7 @@ def get_proxies():
     print(f'Got {len(proxies)} proxies')
     global start_time
     start_time = datetime.now()
+    time.sleep(15)  # Wait for the main function to start
     while True:
         if len(proxies) < 500:
             get_proxy()
