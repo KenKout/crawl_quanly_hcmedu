@@ -78,14 +78,11 @@ def generate_data():
     return data
 
 def get_proxy():
-    proxies = []
+    global proxies
     proxy_info = requests.get('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=all&timeout=15000&proxy_format=protocolipport&format=json').json()
     for proxy in proxy_info['proxies']:
-        #if 'http://' in proxy['proxy']:
         proxy = proxy['proxy']
         proxies.append(proxy)
-    return proxies
-
 def get_data(data):
     global proxies
     global request_counts
@@ -131,6 +128,7 @@ def get_data(data):
 
 def calculate_cpm():
     global request_counts
+    global proxies
     print(f'{datetime.now().strftime("%H:%M:%S")}: 0 requests per minute')
     while True:
         time.sleep(60)
@@ -146,13 +144,13 @@ def calculate_cpm():
 
 def get_proxies():
     global proxies
-    proxies = get_proxy()
+    get_proxy()
     print(f'Got {len(proxies)} proxies')
     global start_time
     start_time = datetime.now()
     while True:
         if len(proxies) < 500:
-            proxies = get_proxy()
+            get_proxy()
         if len(threading.enumerate()) <= 3:  # If there are only 3 threads running, it means the main function has finished
             return None
 def main():
