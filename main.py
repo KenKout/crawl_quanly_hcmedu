@@ -151,7 +151,7 @@ def get_proxies():
     global start_time
     start_time = datetime.now()
     while True:
-        if len(proxies) < 100:
+        if len(proxies) < 500:
             proxies = get_proxy()
         if len(threading.enumerate()) <= 3:  # If there are only 3 threads running, it means the main function has finished
             return None
