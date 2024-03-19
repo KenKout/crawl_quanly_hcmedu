@@ -72,7 +72,7 @@ with open('uncorrect.txt', 'r') as f:
 proxies = []
 def generate_data():
     maMon = ['08']  # Simplified for testing
-    sbd = [str(i).zfill(3) for i in range(300, 700)]
+    sbd = [str(i).zfill(3) for i in range(248, 300)]
     dob = [f'{str(i).zfill(2)}{str(j).zfill(2)}2006' for i in range(1, 32) for j in range(1, 13)]
     data = [f'{i}_{j}-{k}' for i in maMon for j in sbd for k in dob]
     return data
@@ -109,6 +109,7 @@ def get_data(data):
                             break
                         else:
                             print('Error: Rate limited')
+                            proxy = random.choice(proxies)
                         if '"sbd":' in res.text:
                             with open('result.txt', 'a') as f:
                                 f.write(f'{item}: {res.text}\n')
@@ -139,7 +140,7 @@ def calculate_cpm():
             print(f'{datetime.now().strftime("%H:%M:%S")}: {cpm} requests per minute - {request_counts} requests in total')
         except ZeroDivisionError:
             print(f'{datetime.now().strftime("%H:%M:%S")}: 0 requests per minute')
-        print(f'Got {len(proxies)} working proxies', threading.enumerate())
+        print(f'Got {len(proxies)} working proxies')
         if len(threading.enumerate()) <= 3:  # If there are only 3 threads running, it means the main function has finished
             return None
 
