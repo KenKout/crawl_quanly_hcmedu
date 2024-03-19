@@ -1,3 +1,59 @@
+'''import requests
+import random
+def generate_data():
+    #maMon = ['01', '02', '03', '04', '05', '06', '07', '08', '09']
+    maMon = ['08']
+    sbd = []
+    for i in range(1,700):
+        sbd.append(str(i).zfill(3))
+    dob = [] # dd/mm/2006
+    for i in range(1,32):
+        for j in range(1,13):
+            day = str(i).zfill(2)
+            month = str(j).zfill(2)
+            dob.append(f'{day}{month}2006')
+    data = []
+    for i in maMon:
+        for j in sbd:
+            for k in dob:
+                data.append(f'{i}_{j}-{k}')
+    #print(len(data))
+    return data
+def getProxy():
+    proxyies = []
+    proxy = s.get('https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=all&timeout=15000&proxy_format=protocolipport&format=json').json()
+    for i in proxy['proxies']:
+        try:
+            proxy = i['proxy'].split('http://')[1]
+            proxyies.append(proxy)
+        except:
+            pass
+    return proxyies
+def getData(data, proxy):
+    for i in data:
+        link = 'https://meta.hcm.edu.vn/examResult/65f381cf565cbdcf4e283663/result/' + str(i)
+        try:
+            while True:
+                proxy = proxy[random.randint(0, len(proxy) - 1)]
+                https_proxy = f"https://{proxy}"
+                res = s.get(f'{link}', proxies={'https': https_proxy}, timeout=1)
+                if res.status_code != 429:
+                    print(res.text)
+                    break
+                else:
+                    print('error')
+                    continue
+        except requests.exceptions.RequestException as e:
+            print(e)
+s = requests.Session()
+data = generate_data()
+with open('data.txt', 'w') as f:
+    for i in data:
+        f.write(i + '\n')
+getData(data, getProxy())
+'''
+
+
 import requests
 import random
 import threading
@@ -15,8 +71,8 @@ with open('uncorrect.txt', 'r') as f:
     sbd_wrong = f.read().split('\n')
 proxies = []
 def generate_data():
-    maMon = ['01', '02', '03', '04', '05', '06', '07', '08', '09']
-    sbd = [str(i).zfill(3) for i in range(1, 700)]
+    maMon = ['08']  # Simplified for testing
+    sbd = [str(i).zfill(3) for i in range(300, 700)]
     dob = [f'{str(i).zfill(2)}{str(j).zfill(2)}2006' for i in range(1, 32) for j in range(1, 13)]
     data = [f'{i}_{j}-{k}' for i in maMon for j in sbd for k in dob]
     return data
@@ -96,24 +152,29 @@ def get_proxies():
         if len(proxies) < 100:
             proxies = get_proxy()
 def main():
-    s = requests.Session()
-    data = generate_data()
-    with open('data.txt', 'w') as f:
-        for item in data:
-            f.write(item + '\n')
+    while True:
+        if len(proxies) > 100:
+            s = requests.Session()
+            with open('remain.txt', 'r') as f:
+                data = f.read().split('\n')
+            print(data)
+            with open('data.txt', 'w') as f:
+                for item in data:
+                    f.write(item + '\n')
 
-    num_threads = 200  # You can adjust the number of threads
-    chunks = [data[i:i + len(data) // num_threads] for i in range(0, len(data), len(data) // num_threads)]
+            num_threads = 200  # You can adjust the number of threads
+            chunks = [data[i:i + len(data) // num_threads] for i in range(0, len(data), len(data) // num_threads)]
 
-    threads = []
-    for chunk in chunks:
-        t = threading.Thread(target=get_data, args=(chunk,))
-        t.start()
-        threads.append(t)
+            threads = []
+            for chunk in chunks:
+                t = threading.Thread(target=get_data, args=(chunk,))
+                t.start()
+                threads.append(t)
 
-    for t in threads:
-        t.join()
-
+            for t in threads:
+                t.join()
+            break
+            
 threading.Thread(target=calculate_cpm).start()
 threading.Thread(target=get_proxies).start()
 
