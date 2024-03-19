@@ -125,8 +125,8 @@ def get_data(data):
                 print("No more proxies available.")
                 break
         else:
-            pass
             #print(f'{item}: Already got')
+            pass
 
 def calculate_cpm():
     global request_counts
@@ -139,8 +139,9 @@ def calculate_cpm():
             print(f'{datetime.now().strftime("%H:%M:%S")}: {cpm} requests per minute - {request_counts} requests in total')
         except ZeroDivisionError:
             print(f'{datetime.now().strftime("%H:%M:%S")}: 0 requests per minute')
-        print(f'Got {len(proxies)} working proxies')
-        #request_counts = 0
+        print(f'Got {len(proxies)} working proxies', threading.enumerate())
+        if len(threading.enumerate()) <= 3:  # If there are only 3 threads running, it means the main function has finished
+            return None
 
 def get_proxies():
     global proxies
@@ -151,13 +152,12 @@ def get_proxies():
     while True:
         if len(proxies) < 100:
             proxies = get_proxy()
+        if len(threading.enumerate()) <= 3:  # If there are only 3 threads running, it means the main function has finished
+            return None
 def main():
     while True:
         if len(proxies) > 100:
-            s = requests.Session()
-            with open('remain.txt', 'r') as f:
-                data = f.read().split('\n')
-            print(data)
+            data = generate_data()
             with open('data.txt', 'w') as f:
                 for item in data:
                     f.write(item + '\n')
@@ -174,9 +174,12 @@ def main():
             for t in threads:
                 t.join()
             break
-            
 threading.Thread(target=calculate_cpm).start()
 threading.Thread(target=get_proxies).start()
 
 if __name__ == "__main__":
     main()
+    if len(threading.enumerate()) == 3: # If there are only 3 threads running, it means the main function has finished
+        print('Done')
+        exit()
+
