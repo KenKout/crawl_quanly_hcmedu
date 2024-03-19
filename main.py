@@ -179,7 +179,7 @@ threading.Thread(target=get_proxies).start()
 
 if __name__ == "__main__":
     main()
-    if len(threading.enumerate()) == 3: # If there are only 3 threads running, it means the main function has finished
+    if len(threading.enumerate()) <= 3: # If there are only 3 threads running, it means the main function has finished
         print('Done')
         exit()
 
