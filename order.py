@@ -7,14 +7,20 @@ import queue
 import re
 
 request_counts = 0
-#sbd_got = []
-with open('result.txt', 'r+', encoding="utf-8") as f:
-    sbd_got = f.read().split('\n')
+try:
+    with open('result.txt', 'r', encoding="utf-8") as f:
+        sbd_got = f.read().split('\n')
+except:
+    sbd_got = []
 for i in range(len(sbd_got)):
     sbd_got[i] = sbd_got[i].split(': ')[0]
 print(sbd_got)
-with open('uncorrect.txt', 'r+', encoding="utf-8") as f:
-    sbd_wrong = f.read().split('\n')
+try:
+    with open('uncorrect.txt', 'r', encoding="utf-8") as f:
+        sbd_wrong = f.read().split('\n')
+except:
+    sbd_wrong = []
+    
 proxies = []
 def generate_data():
     maMon = ['04']  # Simplified for testing
