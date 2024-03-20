@@ -4,20 +4,21 @@ import threading
 import time
 from datetime import datetime
 import queue
+import re
 
 request_counts = 0
 #sbd_got = []
-with open('result.txt', 'r') as f:
+with open('result.txt', 'r+', encoding="utf-8") as f:
     sbd_got = f.read().split('\n')
 for i in range(len(sbd_got)):
     sbd_got[i] = sbd_got[i].split(': ')[0]
 print(sbd_got)
-with open('uncorrect.txt', 'r') as f:
+with open('uncorrect.txt', 'r+', encoding="utf-8") as f:
     sbd_wrong = f.read().split('\n')
 proxies = []
 def generate_data():
-    maMon = ['08']  # Simplified for testing
-    sbd = [str(i).zfill(3) for i in range(248, 300)]
+    maMon = ['04']  # Simplified for testing
+    sbd = [str(i).zfill(3) for i in range(1, 700)]
     dob = [f'{str(i).zfill(2)}{str(j).zfill(2)}2006' for i in range(1, 32) for j in range(1, 13)]
     data = [f'{i}_{j}-{k}' for i in maMon for j in sbd for k in dob]
     return data
@@ -28,6 +29,60 @@ def get_proxy():
     for proxy in proxy_info['proxies']:
         proxy = proxy['proxy']
         proxies.append(proxy)
+
+    proxy_info = requests.get('https://free-proxy-list.net/').text
+    regex = re.compile(r'(\d+\.\d+\.\d+\.\d+):(\d+)')
+    # Add http:// to the beginning of each proxy
+    proxies += [f'http://{match[0]}:{match[1]}' for match in regex.findall(proxy_info)]
+
+    proxy_info = requests.get('https://www.us-proxy.org/').text
+    regex = re.compile(r'(\d+\.\d+\.\d+\.\d+):(\d+)')
+    # Add http:// to the beginning of each proxy
+    proxies += [f'http://{match[0]}:{match[1]}' for match in regex.findall(proxy_info)]
+
+    proxy_info = requests.get('https://www.socks-proxy.net/').text
+    regex = re.compile(r'(\d+\.\d+\.\d+\.\d+):(\d+)')
+    # Add socks5:// to the beginning of each proxy
+    proxies += [f'socks5://{match[0]}:{match[1]}' for match in regex.findall(proxy_info)]
+
+    proxy_info = requests.get('https://www.juproxy.com/free_api').text
+    # Add http:// to the beginning of each proxy
+    proxies += [f'http://{proxy}' for proxy in proxy_info.split('\n')]
+    '''
+    # Current date
+    date = datetime.now().strftime('%Y-%m-%d')
+    proxy_info = requests.get(f'https://checkerproxy.net/api/archive/{date}').json()
+    for proxy in proxy_info:
+        if proxy['ip'] != "172.18.0.1": # Remove the default proxy
+            if proxy['type'] == 1:
+                proxy = proxy['addr']
+                # Add http:// to the beginning of each proxy
+                proxies.append(f'http://{proxy}')
+            elif proxy['type'] == 2:
+                proxy = proxy['addr']
+                # Add https:// to the beginning of each proxy
+                proxies.append(f'https://{proxy}')
+            elif proxy['type'] == 4:
+                proxy = proxy['addr']
+                # Add socks5:// to the beginning of each proxy
+                proxies.append(f'socks5://{proxy}')'''
+    # Remove duplicates
+    proxies = list(set(proxies))
+    # Remove empty strings
+    proxies = list(filter(None, proxies))
+    '''
+    # Check if the proxy is working
+    for proxy in proxies:
+        try:
+            http_proxy = f"{proxy}"
+            https_proxy = f"{proxy}"
+            res = requests.get('https://api.ipify.org', proxies={'https': https_proxy, 'http': http_proxy}, timeout=15)
+        except requests.exceptions.RequestException as e:
+            # Remove the proxy if it's not working
+            try:proxies.remove(proxy)
+            except:pass
+            continue
+    '''
 def get_data(item):
     global proxies
     global request_counts
@@ -54,7 +109,7 @@ def get_data(item):
                             print('Error: Rate limited')
                             proxy = random.choice(proxies)
                         if '"sbd":' in res.text:
-                            with open('result.txt', 'a') as f:
+                            with open('result.txt', 'a', encoding='utf-8') as f:
                                 f.write(f'{item}: {res.text}\n')
                             print(f'{item}: {res.text}')
                             sbd_got.append(item)
