@@ -7,6 +7,7 @@ import queue
 import re
 
 request_counts = 0
+#sbd_got = []
 try:
     with open('result.txt', 'r', encoding="utf-8") as f:
         sbd_got = f.read().split('\n')
@@ -20,10 +21,10 @@ try:
         sbd_wrong = f.read().split('\n')
 except:
     sbd_wrong = []
-    
+
 proxies = []
 def generate_data():
-    maMon = ['04']  # Simplified for testing
+    maMon = ['05']  # Simplified for testing
     sbd = [str(i).zfill(3) for i in range(1, 700)]
     dob = [f'{str(i).zfill(2)}{str(j).zfill(2)}2006' for i in range(1, 32) for j in range(1, 13)]
     data = [f'{i}_{j}-{k}' for i in maMon for j in sbd for k in dob]
@@ -110,6 +111,7 @@ def get_data(item):
                             request_counts += 1
                             with open('uncorrect.txt', 'a') as f:
                                 f.write(f'{item}\n')
+                            sbd_wrong.append(item)
                             break
                         else:
                             print('Error: Rate limited')
